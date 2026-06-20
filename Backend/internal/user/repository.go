@@ -5,11 +5,23 @@ import (
 	"gorm.io/gorm"
 )
 
+type IRepository interface {
+	Create(user *User) error
+	ExistsByEmail(email string) (bool, error)
+	ExistsByPAN(PAN string) (bool, error)
+	ExistsByAadhaar(Aadhaar string) (bool, error)
+	FindByID(id uuid.UUID) (*User, error)
+	GetAll(offset, limit int) ([]User, error)
+	Update(user *User) error
+	Delete(user *User) error
+	Count() (int64, error)
+}
+
 type Repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *Repository {
+func NewRepository(db *gorm.DB) IRepository {
 	return &Repository{
 		db: db,
 	}

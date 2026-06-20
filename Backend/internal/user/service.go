@@ -7,11 +7,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type Service struct {
-	repository *Repository
+type IService interface {
+	Create(req CreateUserRequest) (*User, error)
+	GetByID(id uuid.UUID) (*User, error)
+	GetAll(page, limit int) ([]User, int64, error)
+	Update(id uuid.UUID, req UpdateUserRequest) (*User, error)
+	Delete(id uuid.UUID) error
 }
 
-func NewService(repository *Repository) *Service {
+type Service struct {
+	repository IRepository
+}
+
+func NewService(repository IRepository) IService {
 	return &Service{
 		repository: repository,
 	}
