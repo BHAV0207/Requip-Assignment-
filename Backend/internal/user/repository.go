@@ -116,3 +116,9 @@ func (r *Repository) Delete(user *User) error {
 	return r.db.Delete(user).Error
 
 }
+
+func (r *Repository) Count() (int64, error) {
+	var count int64
+	err := r.db.Model(&User{}).Count(&count).Error
+	return count, err
+}

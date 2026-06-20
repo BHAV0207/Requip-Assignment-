@@ -13,6 +13,19 @@ type CreateUserRequest struct {
 	PermanentAddress string `json:"permanentAddress"`
 }
 
+type UpdateUserRequest struct {
+	Name             *string `json:"name" validate:"omitempty,min=2,max=100"`
+	Email            *string `json:"email" validate:"omitempty,email"`
+	PrimaryMobile    *string `json:"primaryMobile" validate:"omitempty,len=10"`
+	SecondaryMobile  *string `json:"secondaryMobile"`
+	Aadhaar          *string `json:"aadhaar" validate:"omitempty,len=12"`
+	PAN              *string `json:"pan" validate:"omitempty,len=10"`
+	DateOfBirth      *string `json:"dateOfBirth"`
+	PlaceOfBirth     *string `json:"placeOfBirth"`
+	CurrentAddress   *string `json:"currentAddress"`
+	PermanentAddress *string `json:"permanentAddress"`
+}
+
 type UserResponse struct {
 	ID               string `json:"id"`
 	Name             string `json:"name"`
