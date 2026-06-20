@@ -3,6 +3,7 @@ package user
 import (
 	"net/http"
 
+	"github.com/BHAV0207/Requip-assignment/internal/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,53 +19,19 @@ func NewHandler(service *Service) *Handler {
 
 func (h *Handler) Create(c *gin.Context) {
 
-	var request CreateUserRequest
+	var req CreateUserRequest
 
-	if err := c.ShouldBindJSON(&request); err != nil {
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	user := User{
-		Name: request.Name,
-
-		Email: request.Email,
-
-		PrimaryMobile: request.PrimaryMobile,
-
-		SecondaryMobile: request.SecondaryMobile,
-
-		Aadhaar: request.Aadhaar,
-
-		PAN: request.PAN,
-
-		PlaceOfBirth: request.PlaceOfBirth,
-
-		CurrentAddress: request.CurrentAddress,
-
-		PermanentAddress: request.PermanentAddress,
-	}
-
-	err := h.service.Create(&user)
+	user, err := h.service.Create(req)
 
 	if err != nil {
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-
+		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"message": "User created successfully",
-		"data":    user,
-	})
+	response.Success(c, http.StatusCreated, "User created successfully", user)
 }
