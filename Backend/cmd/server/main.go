@@ -15,6 +15,9 @@ func main() {
 
 	db := database.Connect(cfg)
 
+	// Auto Migrate
+	db.AutoMigrate(&user.User{})
+
 	router := gin.Default()
 
 	api := router.Group("/api/v1")

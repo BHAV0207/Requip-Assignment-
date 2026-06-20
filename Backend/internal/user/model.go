@@ -31,6 +31,7 @@ type User struct {
 }
 
 func NewUser(req CreateUserRequest) *User {
+	dob, _ := time.Parse("2006-01-02", req.DateOfBirth)
 	return &User{
 		Name:             req.Name,
 		Email:            req.Email,
@@ -38,6 +39,7 @@ func NewUser(req CreateUserRequest) *User {
 		SecondaryMobile:  req.SecondaryMobile,
 		Aadhaar:          req.Aadhaar,
 		PAN:              req.PAN,
+		DateOfBirth:      &dob,
 		PlaceOfBirth:     req.PlaceOfBirth,
 		CurrentAddress:   req.CurrentAddress,
 		PermanentAddress: req.PermanentAddress,
@@ -45,13 +47,18 @@ func NewUser(req CreateUserRequest) *User {
 }
 
 func ToUserResponse(user *User) UserResponse {
+	dobStr := ""
+	if user.DateOfBirth != nil {
+		dobStr = user.DateOfBirth.Format("2006-01-02")
+	}
+
 	return UserResponse{
 		ID:                user.ID.String(),
 		Name:              user.Name,
 		Email:             user.Email,
 		PrimaryMobile:     user.PrimaryMobile,
 		SecondaryMobile:   user.SecondaryMobile,
-		DateOfBirth:       user.DateOfBirth.Format("2006-01-02"),
+		DateOfBirth:       dobStr,
 		PlaceOfBirth:      user.PlaceOfBirth,
 		CurrentAddress:    user.CurrentAddress,
 		PermanentAddress:  user.PermanentAddress,
