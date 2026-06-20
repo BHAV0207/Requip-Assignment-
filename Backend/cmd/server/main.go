@@ -3,20 +3,30 @@ package main
 import (
 	"log"
 
+	"github.com/BHAV0207/Requip-assignment/internal/config"
+	"github.com/BHAV0207/Requip-assignment/internal/database"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
+	cfg := config.Load()
+
+	db := database.Connect(cfg)
+
+	_ = db
+
 	router := gin.Default()
 
 	router.GET("/health", func(c *gin.Context) {
+
 		c.JSON(200, gin.H{
 			"status": "ok",
 		})
+
 	})
 
-	log.Println("Server started on :8080")
+	log.Printf("Server started on :%s", cfg.AppPort)
 
-	router.Run(":8080")
+	router.Run(":" + cfg.AppPort)
 }
