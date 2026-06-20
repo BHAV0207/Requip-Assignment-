@@ -15,15 +15,15 @@ func main() {
 
 	db := database.Connect(cfg)
 
-	repository := user.NewRepository(db)
-
-	service := user.NewService(repository)
-
-	handler := user.NewHandler(service)
-
 	router := gin.Default()
 
-	user.RegisterRoutes(router, handler)
+	api := router.Group("/api/v1")
+
+	userRepository := user.NewRepository(db)
+	userService := user.NewService(userRepository)
+	userHandler := user.NewHandler(userService)
+
+	user.RegisterRoutes(api, userHandler)
 
 	router.GET("/health", func(c *gin.Context) {
 

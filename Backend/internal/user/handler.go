@@ -29,9 +29,27 @@ func (h *Handler) Create(c *gin.Context) {
 	user, err := h.service.Create(req)
 
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
+
+		switch err {
+
+		case ErrEmailAlreadyExists,
+			ErrPANAlreadyExists,
+			ErrAadhaarAlreadyExists:
+
+			response.Error(c, http.StatusConflict, err.Error())
+
+		default:
+
+			response.Error(c, http.StatusInternalServerError, "internal server error")
+		}
+
 		return
 	}
 
-	response.Success(c, http.StatusCreated, "User created successfully", user)
+	response.Success(
+		c,
+		http.StatusCreated,
+		"User created successfully",
+		ToUserResponse(user),
+	)
 }

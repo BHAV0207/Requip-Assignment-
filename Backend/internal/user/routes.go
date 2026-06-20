@@ -2,9 +2,9 @@ package user
 
 import "github.com/gin-gonic/gin"
 
-func RegisterRoutes(router *gin.Engine, handler *Handler) {
+func RegisterRoutes(router *gin.RouterGroup, handler *Handler) {
 
-	users := router.Group("/api/v1/users")
+	users := router.Group("/users")
 
 	{
 		users.POST("", handler.Create)

@@ -10,20 +10,13 @@ func NewService(repository *Repository) *Service {
 	}
 }
 
-
 func (s *Service) Create(req CreateUserRequest) (*User, error) {
 
-	user := &User{
-		Name:              req.Name,
-		Email:             req.Email,
-		PrimaryMobile:     req.PrimaryMobile,
-		SecondaryMobile:   req.SecondaryMobile,
-		Aadhaar:           req.Aadhaar,
-		PAN:               req.PAN,
-		PlaceOfBirth:      req.PlaceOfBirth,
-		CurrentAddress:    req.CurrentAddress,
-		PermanentAddress:  req.PermanentAddress,
+	if err := s.validateCreateRequest(req); err != nil {
+		return nil, err
 	}
+
+	user := NewUser(req)
 
 	if err := s.repository.Create(user); err != nil {
 		return nil, err

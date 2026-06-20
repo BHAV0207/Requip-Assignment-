@@ -19,49 +19,55 @@ func (r *Repository) Create(user *User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *Repository) FindByEmail(email string) (*User, error) {
+func (r *Repository) ExistsByEmail(email string) (bool, error) {
 
-	var user User
+	var count int64
 
 	err := r.db.
+		Model(&User{}).
 		Where("email = ?", email).
-		First(&user).Error
+		Count(&count).
+		Error
 
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return &user, nil
+	return count > 0, nil
 }
 
-func (r *Repository) FindByPAN(PAN string) (*User, error) {
+func (r *Repository) ExistsByPAN(PAN string) (bool, error) {
 
-	var user User
+	var count int64
 
 	err := r.db.
+		Model(&User{}).
 		Where("PAN = ?", PAN).
-		First(&user).Error
+		Count(&count).
+		Error
 
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return &user, nil
+	return count > 0, nil
 }
 
-func (r *Repository) FindByAadhaar(Aadhaar string) (*User, error) {
+func (r *Repository) ExistsByAadhaar(Aadhaar string) (bool, error) {
 
-	var user User
+	var count int64	
 
 	err := r.db.
+		Model(&User{}).
 		Where("Aadhaar = ?", Aadhaar).
-		First(&user).Error
+		Count(&count).
+		Error
 
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return &user, nil
+	return count > 0, nil
 }
 
 

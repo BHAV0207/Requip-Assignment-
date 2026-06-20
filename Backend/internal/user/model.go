@@ -29,3 +29,33 @@ type User struct {
 
 	PermanentAddress string
 }
+
+func NewUser(req CreateUserRequest) *User {
+	return &User{
+		Name:             req.Name,
+		Email:            req.Email,
+		PrimaryMobile:    req.PrimaryMobile,
+		SecondaryMobile:  req.SecondaryMobile,
+		Aadhaar:          req.Aadhaar,
+		PAN:              req.PAN,
+		PlaceOfBirth:     req.PlaceOfBirth,
+		CurrentAddress:   req.CurrentAddress,
+		PermanentAddress: req.PermanentAddress,
+	}
+}
+
+func ToUserResponse(user *User) UserResponse {
+	return UserResponse{
+		ID:                user.ID.String(),
+		Name:              user.Name,
+		Email:             user.Email,
+		PrimaryMobile:     user.PrimaryMobile,
+		SecondaryMobile:   user.SecondaryMobile,
+		DateOfBirth:       user.DateOfBirth.Format("2006-01-02"),
+		PlaceOfBirth:      user.PlaceOfBirth,
+		CurrentAddress:    user.CurrentAddress,
+		PermanentAddress:  user.PermanentAddress,
+		CreatedAt:         user.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:         user.UpdatedAt.Format(time.RFC3339),
+	}
+}

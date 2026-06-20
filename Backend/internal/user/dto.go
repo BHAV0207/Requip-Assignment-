@@ -12,3 +12,17 @@ type CreateUserRequest struct {
 	CurrentAddress   string `json:"currentAddress"`
 	PermanentAddress string `json:"permanentAddress"`
 }
+
+type UserResponse struct {
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	Email            string `json:"email"`
+	PrimaryMobile    string `json:"primaryMobile"`
+	SecondaryMobile  string `json:"secondaryMobile,omitempty"`
+	DateOfBirth      string `json:"dateOfBirth"`
+	PlaceOfBirth     string `json:"placeOfBirth"`
+	CurrentAddress   string `json:"currentAddress"`
+	PermanentAddress string `json:"permanentAddress"`
+	CreatedAt        string `json:"createdAt"`
+	UpdatedAt        string `json:"updatedAt"`
+}
