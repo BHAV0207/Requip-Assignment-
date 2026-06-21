@@ -95,12 +95,6 @@ func (s *Service) Update(id uuid.UUID, req UpdateUserRequest) (*User, error) {
 	if req.SecondaryMobile != nil {
 		user.SecondaryMobile = *req.SecondaryMobile
 	}
-	if req.Aadhaar != nil {
-		user.Aadhaar = *req.Aadhaar
-	}
-	if req.PAN != nil {
-		user.PAN = *req.PAN
-	}
 	if req.DateOfBirth != nil {
 		dob, _ := time.Parse("2006-01-02", *req.DateOfBirth)
 		user.DateOfBirth = &dob

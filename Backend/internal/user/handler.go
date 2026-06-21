@@ -116,7 +116,7 @@ func (h *Handler) Delete(c *gin.Context) {
 
 func (h *Handler) handleError(c *gin.Context, err error) {
 	switch err {
-	case ErrEmailAlreadyExists, ErrPANAlreadyExists, ErrAadhaarAlreadyExists:
+	case ErrEmailAlreadyExists, ErrPANAlreadyExists, ErrAadhaarAlreadyExists, ErrMobileAlreadyExists:
 		response.Error(c, http.StatusConflict, err.Error())
 	case ErrUserNotFound:
 		response.Error(c, http.StatusNotFound, err.Error())

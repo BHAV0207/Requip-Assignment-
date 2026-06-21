@@ -31,6 +31,15 @@ func (s *Service) validateCreateRequest(req CreateUserRequest) error {
 		return ErrAadhaarAlreadyExists
 	}
 
+	exists, err = s.repository.ExistsByPrimaryMobile(req.PrimaryMobile)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return ErrMobileAlreadyExists
+	}
+
 	return nil
 }
 
@@ -49,28 +58,15 @@ func (s *Service) validateUpdateRequest(id uuid.UUID, req UpdateUserRequest) err
 		}
 	}
 
-	if req.PAN != nil {
-		exists, err := s.repository.ExistsByPAN(*req.PAN)
+	if req.PrimaryMobile != nil {
+		exists, err := s.repository.ExistsByPrimaryMobile(*req.PrimaryMobile)
 		if err != nil {
 			return err
 		}
 		if exists {
 			user, _ := s.repository.FindByID(id)
-			if user != nil && user.PAN != *req.PAN {
-				return ErrPANAlreadyExists
-			}
-		}
-	}
-
-	if req.Aadhaar != nil {
-		exists, err := s.repository.ExistsByAadhaar(*req.Aadhaar)
-		if err != nil {
-			return err
-		}
-		if exists {
-			user, _ := s.repository.FindByID(id)
-			if user != nil && user.Aadhaar != *req.Aadhaar {
-				return ErrAadhaarAlreadyExists
+			if user != nil && user.PrimaryMobile != *req.PrimaryMobile {
+				return ErrMobileAlreadyExists
 			}
 		}
 	}

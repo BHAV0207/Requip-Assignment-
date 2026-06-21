@@ -1,16 +1,16 @@
 package user
 
 type CreateUserRequest struct {
-	Name             string `json:"name" validate:"required,min=2,max=100"`
-	Email            string `json:"email" validate:"required,email"`
-	PrimaryMobile    string `json:"primaryMobile" validate:"required,len=10"`
+	Name             string `json:"name" binding:"required,min=2,max=100"`
+	Email            string `json:"email" binding:"required,email"`
+	PrimaryMobile    string `json:"primaryMobile" binding:"required,len=10"`
 	SecondaryMobile  string `json:"secondaryMobile"`
-	Aadhaar          string `json:"aadhaar" validate:"required,len=12"`
-	PAN              string `json:"pan" validate:"required,len=10"`
-	DateOfBirth      string `json:"dateOfBirth"`
-	PlaceOfBirth     string `json:"placeOfBirth"`
-	CurrentAddress   string `json:"currentAddress"`
-	PermanentAddress string `json:"permanentAddress"`
+	Aadhaar          string `json:"aadhaar" binding:"required,len=12"`
+	PAN              string `json:"pan" binding:"required,len=10"`
+	DateOfBirth      string `json:"dateOfBirth" binding:"required"`
+	PlaceOfBirth     string `json:"placeOfBirth" binding:"required"`
+	CurrentAddress   string `json:"currentAddress" binding:"required"`
+	PermanentAddress string `json:"permanentAddress" binding:"required"`
 }
 
 type UpdateUserRequest struct {
@@ -32,6 +32,8 @@ type UserResponse struct {
 	Email            string `json:"email"`
 	PrimaryMobile    string `json:"primaryMobile"`
 	SecondaryMobile  string `json:"secondaryMobile,omitempty"`
+	Aadhaar          string `json:"aadhaar"`
+	PAN              string `json:"pan"`
 	DateOfBirth      string `json:"dateOfBirth"`
 	PlaceOfBirth     string `json:"placeOfBirth"`
 	CurrentAddress   string `json:"currentAddress"`

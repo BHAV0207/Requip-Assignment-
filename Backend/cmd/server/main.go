@@ -6,6 +6,7 @@ import (
 	"github.com/BHAV0207/Requip-assignment/internal/config"
 	"github.com/BHAV0207/Requip-assignment/internal/database"
 	"github.com/BHAV0207/Requip-assignment/internal/user"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,6 +20,9 @@ func main() {
 	db.AutoMigrate(&user.User{})
 
 	router := gin.Default()
+
+	// CORS
+	router.Use(cors.Default())
 
 	api := router.Group("/api/v1")
 

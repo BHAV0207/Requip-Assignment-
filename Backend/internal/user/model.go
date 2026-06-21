@@ -58,6 +58,8 @@ func ToUserResponse(user *User) UserResponse {
 		Email:             user.Email,
 		PrimaryMobile:     user.PrimaryMobile,
 		SecondaryMobile:   user.SecondaryMobile,
+		Aadhaar:           user.Aadhaar,
+		PAN:               user.PAN,
 		DateOfBirth:       dobStr,
 		PlaceOfBirth:      user.PlaceOfBirth,
 		CurrentAddress:    user.CurrentAddress,

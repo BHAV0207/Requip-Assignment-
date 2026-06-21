@@ -42,9 +42,7 @@ function App() {
               </h1>
             </div>
             <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-slate-500">
-              <span className="hover:text-indigo-600 cursor-pointer transition-colors">Dashboard</span>
               <span className="text-indigo-600 border-b-2 border-indigo-600 py-5">Users</span>
-              <span className="hover:text-indigo-600 cursor-pointer transition-colors">Reports</span>
             </div>
           </div>
         </div>

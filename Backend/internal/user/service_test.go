@@ -33,6 +33,11 @@ func (m *MockRepository) ExistsByAadhaar(Aadhaar string) (bool, error) {
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockRepository) ExistsByPrimaryMobile(mobile string) (bool, error) {
+	args := m.Called(mobile)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockRepository) FindByID(id uuid.UUID) (*User, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
@@ -77,6 +82,7 @@ func TestService_Create(t *testing.T) {
 		mockRepo.On("ExistsByEmail", req.Email).Return(false, nil).Once()
 		mockRepo.On("ExistsByPAN", req.PAN).Return(false, nil).Once()
 		mockRepo.On("ExistsByAadhaar", req.Aadhaar).Return(false, nil).Once()
+		mockRepo.On("ExistsByPrimaryMobile", req.PrimaryMobile).Return(false, nil).Once()
 		mockRepo.On("Create", mock.Anything).Return(nil).Once()
 
 		user, err := service.Create(req)

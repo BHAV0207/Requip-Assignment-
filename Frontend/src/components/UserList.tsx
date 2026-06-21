@@ -70,71 +70,85 @@ const UserList: React.FC<UserListProps> = ({ onEdit, onAdd, refreshTrigger }) =>
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
-              <th className="px-6 py-4">Name</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Phone</th>
-              <th className="px-6 py-4">PAN / Aadhaar</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="animate-spin text-indigo-600" size={32} />
-                    <span>Loading users...</span>
+      <div className="p-6">
+        {loading ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-slate-400">
+            <Loader2 className="animate-spin text-indigo-600" size={32} />
+            <span>Loading users...</span>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="py-12 text-center text-slate-400">No users found</div>
+        ) : (
+          <div className="space-y-4">
+            {users.map((user) => (
+              <div
+                key={user.id}
+                className="border border-slate-200 rounded-xl p-5 hover:border-indigo-200 hover:shadow-md transition-all bg-white"
+              >
+                {/* Header row: Name + Actions */}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">{user.name}</h3>
+                    <p className="text-sm text-slate-500 font-mono">{user.email}</p>
                   </div>
-                </td>
-              </tr>
-            ) : users.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
-                  No users found
-                </td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">{user.name}</div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 font-mono text-sm">{user.email}</td>
-                  <td className="px-6 py-4 text-slate-600 font-mono text-sm">{user.primaryMobile}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-xs space-y-1">
-                      <div className="text-slate-500 uppercase tracking-wider">PAN: <span className="text-slate-700 font-mono">{user.pan}</span></div>
-                      <div className="text-slate-500 uppercase tracking-wider">AAD: <span className="text-slate-700 font-mono">{user.aadhaar}</span></div>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => onEdit(user)}
+                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                      title="Edit User"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      title="Delete User"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Details grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+                  <div>
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Primary Mobile</span>
+                    <p className="text-slate-700 font-mono mt-0.5">{user.primaryMobile}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Secondary Mobile</span>
+                    <p className="text-slate-700 font-mono mt-0.5">{user.secondaryMobile || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Date of Birth</span>
+                    <p className="text-slate-700 mt-0.5">{user.dateOfBirth || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Place of Birth</span>
+                    <p className="text-slate-700 mt-0.5">{user.placeOfBirth || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">PAN / Aadhaar</span>
+                    <div className="mt-0.5 inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md px-2 py-1 text-xs font-medium">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      Hidden for security
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => onEdit(user)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                        title="Edit User"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Delete User"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </div>
+                  <div className="col-span-2 md:col-span-1 lg:col-span-1">
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Current Address</span>
+                    <p className="text-slate-700 mt-0.5">{user.currentAddress || '—'}</p>
+                  </div>
+                  <div className="col-span-2 md:col-span-1 lg:col-span-2">
+                    <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Permanent Address</span>
+                    <p className="text-slate-700 mt-0.5">{user.permanentAddress || '—'}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
 
       <div className="p-4 border-t border-slate-200 flex items-center justify-between bg-slate-50/50 text-sm text-slate-600">
         <div>

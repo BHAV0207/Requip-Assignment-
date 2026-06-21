@@ -112,22 +112,32 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSuccess }) => {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Aadhaar Number</label>
               <input
-                required
+                disabled={!!user}
+                required={!user}
                 name="aadhaar"
                 value={formData.aadhaar}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                className={`w-full px-4 py-2 border rounded-lg transition-all outline-none ${
+                    user 
+                    ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' 
+                    : 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+                }`}
                 placeholder="1234 5678 9012"
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">PAN Number</label>
               <input
-                required
+                disabled={!!user}
+                required={!user}
                 name="pan"
                 value={formData.pan}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                className={`w-full px-4 py-2 border rounded-lg transition-all outline-none ${
+                    user 
+                    ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' 
+                    : 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+                }`}
                 placeholder="ABCDE1234F"
               />
             </div>

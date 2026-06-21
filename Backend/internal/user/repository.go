@@ -1,6 +1,10 @@
 package user
 
 import (
+	"errors"
+	"strings"
+
+	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -10,6 +14,7 @@ type IRepository interface {
 	ExistsByEmail(email string) (bool, error)
 	ExistsByPAN(PAN string) (bool, error)
 	ExistsByAadhaar(Aadhaar string) (bool, error)
+	ExistsByPrimaryMobile(mobile string) (bool, error)
 	FindByID(id uuid.UUID) (*User, error)
 	GetAll(offset, limit int) ([]User, error)
 	Update(user *User) error
@@ -28,14 +33,34 @@ func NewRepository(db *gorm.DB) IRepository {
 }
 
 func (r *Repository) Create(user *User) error {
-	return r.db.Create(user).Error
+	err := r.db.Create(user).Error
+	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			msg := mysqlErr.Message
+			if strings.Contains(msg, "idx_users_email") {
+				return ErrEmailAlreadyExists
+			}
+			if strings.Contains(msg, "idx_users_primary_mobile") {
+				return ErrMobileAlreadyExists
+			}
+			if strings.Contains(msg, "idx_users_pan") {
+				return ErrPANAlreadyExists
+			}
+			if strings.Contains(msg, "idx_users_aadhaar") {
+				return ErrAadhaarAlreadyExists
+			}
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *Repository) ExistsByEmail(email string) (bool, error) {
 
 	var count int64
 
-	err := r.db.
+	err := r.db.Unscoped().
 		Model(&User{}).
 		Where("email = ?", email).
 		Count(&count).
@@ -52,7 +77,7 @@ func (r *Repository) ExistsByPAN(PAN string) (bool, error) {
 
 	var count int64
 
-	err := r.db.
+	err := r.db.Unscoped().
 		Model(&User{}).
 		Where("PAN = ?", PAN).
 		Count(&count).
@@ -69,9 +94,26 @@ func (r *Repository) ExistsByAadhaar(Aadhaar string) (bool, error) {
 
 	var count int64	
 
-	err := r.db.
+	err := r.db.Unscoped().
 		Model(&User{}).
 		Where("Aadhaar = ?", Aadhaar).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *Repository) ExistsByPrimaryMobile(mobile string) (bool, error) {
+
+	var count int64
+
+	err := r.db.Unscoped().
+		Model(&User{}).
+		Where("primary_mobile = ?", mobile).
 		Count(&count).
 		Error
 

@@ -59,8 +59,15 @@ func TestHandler_Create(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		req := CreateUserRequest{
-			Name:  "John Doe",
-			Email: "john@example.com",
+			Name:             "John Doe",
+			Email:            "john@example.com",
+			PrimaryMobile:    "9876543210",
+			Aadhaar:          "123456789012",
+			PAN:              "ABCDE1234F",
+			DateOfBirth:      "1990-01-01",
+			PlaceOfBirth:     "Mumbai",
+			CurrentAddress:   "123 Street",
+			PermanentAddress: "123 Street",
 		}
 		expectedUser := &User{Name: req.Name, Email: req.Email}
 		mockService.On("Create", req).Return(expectedUser, nil).Once()
