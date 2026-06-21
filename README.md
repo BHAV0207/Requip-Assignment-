@@ -39,6 +39,44 @@ A comprehensive User Management system built with a Go backend (Gin + GORM + MyS
    npm run dev
    ```
 
+## API Documentation
+
+All API endpoints are prefixed with `/api/v1`. By default, the server runs on `http://localhost:8080`.
+
+### User Endpoints
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/users` | Create a new user record. |
+| `GET` | `/users` | List users with pagination using `page` and `limit` query parameters. |
+| `GET` | `/users/:id` | Retrieve detailed information for a specific user. |
+| `PUT` | `/users/:id` | Update user details (Note: PAN and Aadhaar are immutable). |
+| `DELETE` | `/users/:id` | Soft delete a user record. |
+
+#### Create User Request Body
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "primaryMobile": "9876543210",
+  "secondaryMobile": "9876543211",
+  "aadhaar": "123456789012",
+  "pan": "ABCDE1234F",
+  "dateOfBirth": "1990-01-01",
+  "placeOfBirth": "Mumbai",
+  "currentAddress": "123 Street, Mumbai",
+  "permanentAddress": "123 Street, Mumbai"
+}
+```
+
+#### Running Tests
+To run the backend unit tests and verify the logic:
+```bash
+cd Backend
+go test ./internal/user/...
+```
+
+
 ## Pain Points & Learnings
 
 ### Pain Points
