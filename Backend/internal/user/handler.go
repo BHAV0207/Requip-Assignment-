@@ -6,6 +6,7 @@ import (
 
 	"github.com/BHAV0207/Requip-assignment/internal/response"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
@@ -22,7 +23,7 @@ func NewHandler(service IService) *Handler {
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+		response.Error(c, http.StatusBadRequest, formatValidationError(err))
 		return
 	}
 
@@ -85,7 +86,7 @@ func (h *Handler) Update(c *gin.Context) {
 
 	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+		response.Error(c, http.StatusBadRequest, formatValidationError(err))
 		return
 	}
 
@@ -123,4 +124,25 @@ func (h *Handler) handleError(c *gin.Context, err error) {
 	default:
 		response.Error(c, http.StatusInternalServerError, "internal server error")
 	}
+}
+
+func formatValidationError(err error) string {
+	if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		for _, e := range validationErrors {
+			field := e.Field()
+			switch e.Tag() {
+			case "required":
+				return field + " is required"
+			case "email":
+				return "Invalid email format"
+			case "len":
+				return field + " must be exactly " + e.Param() + " characters"
+			case "min":
+				return field + " must be at least " + e.Param() + " characters"
+			case "max":
+				return field + " must be at most " + e.Param() + " characters"
+			}
+		}
+	}
+	return "Invalid request body"
 }
