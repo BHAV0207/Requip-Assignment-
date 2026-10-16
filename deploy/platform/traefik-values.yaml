@@ -1,7 +1,8 @@
 # Ingress controller. ingress-nginx was retired upstream in 2026, so Traefik
 # (actively maintained, supports standard Ingress and Gateway API) is used.
 service:
-  type: NodePort
+  spec:
+    type: NodePort   # kind has no cloud load balancer
 ports:
   web:
     nodePort: 30080
