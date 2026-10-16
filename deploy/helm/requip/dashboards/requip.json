@@ -162,14 +162,24 @@
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
-          }
+          },
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      }
     },
     {
       "id": 5,
@@ -346,7 +356,7 @@
       },
       "targets": [
         {
-          "expr": "sum(user_management_in_use_connections{namespace=\"requip\"})",
+          "expr": "sum(go_sql_in_use_connections{namespace=\"requip\"})",
           "legendFormat": "in use",
           "refId": "A",
           "datasource": {
@@ -355,7 +365,7 @@
           }
         },
         {
-          "expr": "sum(user_management_idle_connections{namespace=\"requip\"})",
+          "expr": "sum(go_sql_idle_connections{namespace=\"requip\"})",
           "legendFormat": "idle",
           "refId": "B",
           "datasource": {
@@ -364,9 +374,18 @@
           }
         },
         {
-          "expr": "sum(rate(user_management_wait_count_total{namespace=\"requip\"}[5m]))",
+          "expr": "sum(rate(go_sql_wait_count_total{namespace=\"requip\"}[5m]))",
           "legendFormat": "waits/s",
           "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "max(go_sql_max_open_connections{namespace=\"requip\"})",
+          "legendFormat": "max open (per pod)",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -426,7 +445,7 @@
       },
       "targets": [
         {
-          "expr": "{namespace=\"requip\", container=\"api\"} | json | level=~\"ERROR|WARN\"",
+          "expr": "{namespace=\"requip\", container=\"api\"} | json | level=\"ERROR\"",
           "refId": "A",
           "datasource": {
             "type": "loki",

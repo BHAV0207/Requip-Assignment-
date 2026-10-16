@@ -22,6 +22,7 @@ A comprehensive User Management system built with a Go backend (Gin + GORM + MyS
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Each design choice, the alternatives, and when they would be better |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | What to do for each alert |
 | [docs/EVIDENCE.md](docs/EVIDENCE.md) | Pipeline runs, deployed version, user journey, canary and rollback demos |
+| [docs/VIVA-PREP.md](docs/VIVA-PREP.md) | Commit-to-pod and request walkthroughs, likely questions, live demos |
 
 ## Repository layout
 

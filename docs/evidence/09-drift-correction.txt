@@ -1,0 +1,5 @@
+## Drift correction: manual kubectl change is reverted by Argo CD self-heal
+09:27:18 kubectl scale deploy requip-frontend --replicas=0
+09:27:18 spec/ready replicas = 0/2
+09:27:24 spec/ready replicas = 2/1
+09:27:29 spec/ready replicas = 2/2

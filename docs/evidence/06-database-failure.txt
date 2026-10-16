@@ -1,0 +1,20 @@
+## Hypothesis: if MySQL dies, API pods fail readiness (leave the Service) but liveness keeps passing, so they are NOT restarted; data survives on the PVC; recovery needs no manual action.
+-- before: user count and API restarts
+   users total = 1
+-- 09:23:38 deleting pod requip-mysql-0
+pod "requip-mysql-0" deleted from requip namespace
+   09:23:38 GET /users -> HTTP 200 | api ready: true true true  | mysql ready: true
+   09:23:43 GET /users -> HTTP 500 | api ready: true true true  | mysql ready: false
+   09:23:48 GET /users -> HTTP 500 | api ready: true false false  | mysql ready: false
+   09:23:53 GET /users -> HTTP 200 | api ready: true true true  | mysql ready: true
+-- after: user count and API restarts
+   users total = 1
+   pvc: data-requip-mysql-0   Bound   pvc-31784816-d1cc-46d6-8edc-f231573556c7   2Gi   RWO   standard   <unset>   57m
+-- API pod restart counts after the experiment (pods existed before it):
+   requip-backend-659769c595-4p64q   true   0     2026-10-16T09:21:48Z
+   requip-backend-659769c595-56fh7   true   0     2026-10-16T09:20:26Z
+   requip-backend-659769c595-c5lwn   true   0     2026-10-16T09:22:53Z
+-- API log lines during the outage:
+   {"time":"2026-10-16T09:23:38.806409585Z","level":"ERROR","msg":"request","method":"GET","route":"/api/v1/users","status":500,"duration_ms":10,"trace_id":"d34514fefbfb7ca7d9fff9463752b883"}
+   {"time":"2026-10-16T09:23:39.48858721Z","level":"ERROR","msg":"request","method":"GET","route":"/api/v1/users/:id","status":500,"duration_ms":15,"trace_id":"06a73a1e0be66ae080397b8d695bef5e"}
+   {"time":"2026-10-16T09:23:40.009794669Z","level":"ERROR","msg":"request","method":"GET","route":"/api/v1/users","status":500,"duration_ms":10,"trace_id":"98587beafa628b10e4426e3da4b2d939"}

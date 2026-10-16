@@ -1,0 +1,71 @@
+08:42:48 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:42:58 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:43:09 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:43:19 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:43:29 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:43:39 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:43:49 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:44:00 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:44:10 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:44:20 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:44:30 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:44:40 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:44:51 Healthy||step=4|abort=|stable=6745865654|canary=6745865654
+08:45:01 Progressing|more replicas need to be updated|step=0|abort=|stable=6745865654|canary=f8596dcc5
+08:45:11 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=f8596dcc5
+08:45:21 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=f8596dcc5
+08:45:31 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=f8596dcc5
+08:45:41 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=f8596dcc5
+08:45:52 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=f8596dcc5
+08:46:02 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=f8596dcc5
+08:46:12 Progressing|more replicas need to be updated|step=0|abort=|stable=6745865654|canary=5894bd47fc
+08:46:22 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=5894bd47fc
+08:46:32 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=5894bd47fc
+08:46:43 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=5894bd47fc
+08:46:53 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=5894bd47fc
+08:47:03 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=5894bd47fc
+08:47:13 Paused|CanaryPauseStep|step=1|abort=|stable=6745865654|canary=5894bd47fc
+08:47:24 Degraded|RolloutAborted: Rollout aborted update to revision 5: Background analysis phase error/failed: Metric "error-ratio" assessed Failed due to failed (2) > failureLimit (1)|step=0|abort=true|stable=6745865654|canary=5894bd47fc
+== final
+Name:            requip-backend
+Namespace:       requip
+Status:          ✖ Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 5: Background analysis phase error/failed: Metric "error-ratio" assessed Failed due to failed (2) > failureLimit (1)
+Strategy:        Canary
+  Step:          0/4
+  SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/bhav0207/requip-backend:aea1e4b (stable)
+Replicas:
+  Desired:       3
+  Current:       3
+  Updated:       0
+  Ready:         3
+  Available:     3
+
+NAME                                        KIND         STATUS        AGE    INFO
+⟳ requip-backend                            Rollout      ✖ Degraded    21m    
+├──# revision:5                                                               
+│  ├──⧉ requip-backend-5894bd47fc           ReplicaSet   • ScaledDown  109s   canary
+│  └──α requip-backend-5894bd47fc-5         AnalysisRun  ✖ Failed      95s    ✔ 4,✖ 2
+├──# revision:4                                                               
+│  ├──⧉ requip-backend-f8596dcc5            ReplicaSet   • ScaledDown  2m58s  
+│  └──α requip-backend-f8596dcc5-4          AnalysisRun  ✖ Failed      2m52s  ✔ 4,✖ 2
+├──# revision:3                                                               
+│  ├──⧉ requip-backend-6745865654           ReplicaSet   ✔ Healthy     9m9s   stable
+│  │  ├──□ requip-backend-6745865654-vxj2l  Pod          ✔ Running     9m9s   ready:1/1
+│  │  ├──□ requip-backend-6745865654-pzc6s  Pod          ✔ Running     8m9s   ready:1/1
+│  │  └──□ requip-backend-6745865654-62mrq  Pod          ✔ Running     35s    ready:1/1
+│  └──α requip-backend-6745865654-3         AnalysisRun  ✔ Successful  9m9s   ✔ 10
+├──# revision:2                                                               
+│  └──⧉ requip-backend-556cdd5c97           ReplicaSet   • ScaledDown  19m    
+└──# revision:1                                                               
+   └──⧉ requip-backend-564bcbd48d           ReplicaSet   • ScaledDown  21m    
+error-ratio: phase=Failed failed=2 successful=1
+   2026-10-16T08:46:20Z Successful value=[]
+   2026-10-16T08:46:50Z Failed value=[1]
+   2026-10-16T08:47:20Z Failed value=[0.554722138726717]
+p95-latency: phase=Successful failed= successful=3
+   2026-10-16T08:46:20Z Successful value=[]
+   2026-10-16T08:46:50Z Successful value=[0.004750000000000001]
+   2026-10-16T08:47:20Z Successful value=[0.004942007933098964]
