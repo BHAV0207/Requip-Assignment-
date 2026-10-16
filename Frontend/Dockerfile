@@ -16,8 +16,8 @@ ARG VITE_APP_VERSION=dev
 ENV VITE_API_URL=${VITE_API_URL} VITE_APP_VERSION=${VITE_APP_VERSION}
 RUN npm run build
 
-# ---- runtime stage: unprivileged nginx listens on 8080 as UID 101 ----
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+# ---- runtime stage: unprivileged nginx (stable 1.30, slim) on 8080 as UID 101 ----
+FROM nginxinc/nginx-unprivileged:1.30-alpine3.24-slim
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 USER 101
