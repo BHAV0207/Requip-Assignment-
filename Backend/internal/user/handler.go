@@ -27,7 +27,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.Create(req)
+	user, err := h.service.Create(c.Request.Context(), req)
 	if err != nil {
 		h.handleError(c, err)
 		return
@@ -44,7 +44,7 @@ func (h *Handler) GetByID(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.GetByID(id)
+	user, err := h.service.GetByID(c.Request.Context(), id)
 	if err != nil {
 		h.handleError(c, err)
 		return
@@ -57,7 +57,7 @@ func (h *Handler) GetAll(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-	users, total, err := h.service.GetAll(page, limit)
+	users, total, err := h.service.GetAll(c.Request.Context(), page, limit)
 	if err != nil {
 		h.handleError(c, err)
 		return
@@ -90,7 +90,7 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.Update(id, req)
+	user, err := h.service.Update(c.Request.Context(), id, req)
 	if err != nil {
 		h.handleError(c, err)
 		return
@@ -107,7 +107,7 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Delete(id); err != nil {
+	if err := h.service.Delete(c.Request.Context(), id); err != nil {
 		h.handleError(c, err)
 		return
 	}

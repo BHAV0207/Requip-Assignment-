@@ -53,18 +53,18 @@ func ToUserResponse(user *User) UserResponse {
 	}
 
 	return UserResponse{
-		ID:                user.ID.String(),
-		Name:              user.Name,
-		Email:             user.Email,
-		PrimaryMobile:     user.PrimaryMobile,
-		SecondaryMobile:   user.SecondaryMobile,
-		Aadhaar:           user.Aadhaar,
-		PAN:               user.PAN,
-		DateOfBirth:       dobStr,
-		PlaceOfBirth:      user.PlaceOfBirth,
-		CurrentAddress:    user.CurrentAddress,
-		PermanentAddress:  user.PermanentAddress,
-		CreatedAt:         user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:         user.UpdatedAt.Format(time.RFC3339),
+		ID:               user.ID.String(),
+		Name:             user.Name,
+		Email:            user.Email,
+		PrimaryMobile:    user.PrimaryMobile,
+		SecondaryMobile:  user.SecondaryMobile,
+		Aadhaar:          user.Aadhaar,
+		PAN:              user.PAN,
+		DateOfBirth:      dobStr,
+		PlaceOfBirth:     user.PlaceOfBirth,
+		CurrentAddress:   user.CurrentAddress,
+		PermanentAddress: user.PermanentAddress,
+		CreatedAt:        user.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:        user.UpdatedAt.Format(time.RFC3339),
 	}
 }

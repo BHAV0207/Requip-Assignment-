@@ -2,6 +2,7 @@ package user
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -18,7 +19,7 @@ type MockService struct {
 	mock.Mock
 }
 
-func (m *MockService) Create(req CreateUserRequest) (*User, error) {
+func (m *MockService) Create(_ context.Context, req CreateUserRequest) (*User, error) {
 	args := m.Called(req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -26,7 +27,7 @@ func (m *MockService) Create(req CreateUserRequest) (*User, error) {
 	return args.Get(0).(*User), args.Error(1)
 }
 
-func (m *MockService) GetByID(id uuid.UUID) (*User, error) {
+func (m *MockService) GetByID(_ context.Context, id uuid.UUID) (*User, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -34,12 +35,12 @@ func (m *MockService) GetByID(id uuid.UUID) (*User, error) {
 	return args.Get(0).(*User), args.Error(1)
 }
 
-func (m *MockService) GetAll(page, limit int) ([]User, int64, error) {
+func (m *MockService) GetAll(_ context.Context, page, limit int) ([]User, int64, error) {
 	args := m.Called(page, limit)
 	return args.Get(0).([]User), int64(args.Int(1)), args.Error(2)
 }
 
-func (m *MockService) Update(id uuid.UUID, req UpdateUserRequest) (*User, error) {
+func (m *MockService) Update(_ context.Context, id uuid.UUID, req UpdateUserRequest) (*User, error) {
 	args := m.Called(id, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -47,7 +48,7 @@ func (m *MockService) Update(id uuid.UUID, req UpdateUserRequest) (*User, error)
 	return args.Get(0).(*User), args.Error(1)
 }
 
-func (m *MockService) Delete(id uuid.UUID) error {
+func (m *MockService) Delete(_ context.Context, id uuid.UUID) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
@@ -74,7 +75,7 @@ func TestHandler_Create(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		
+
 		body, _ := json.Marshal(req)
 		c.Request = httptest.NewRequest("POST", "/api/v1/users", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
