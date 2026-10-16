@@ -6,10 +6,9 @@ backend:
     # The canary analysis should abort this rollout automatically.
     FAULT_ERROR_RATE: "0.5"
   image:
-    tag: "aea1e4b"
+    tag: "eee7fda"
 frontend:
   image:
-    tag: "aea1e4b"
+    tag: "eee7fda"
 loadgen:
   enabled: true
-
