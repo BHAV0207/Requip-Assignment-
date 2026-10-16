@@ -2,9 +2,9 @@
 # build; Argo CD deploys whatever this file says. Git is the source of truth.
 backend:
   image:
-    tag: "3f39a75"
+    tag: "aea1e4b"
 frontend:
   image:
-    tag: "3f39a75"
+    tag: "aea1e4b"
 loadgen:
   enabled: true
