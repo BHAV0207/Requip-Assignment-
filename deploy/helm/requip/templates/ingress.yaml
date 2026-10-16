@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled }}
+# One host. "/" serves the SPA, "/api" goes straight to the Go API, so the
+# browser never needs CORS and there is a single public entry point.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "requip.name" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "requip.backend.fullname" . }}
+                port: { name: http }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "requip.frontend.fullname" . }}
+                port: { name: http }
+{{- end }}

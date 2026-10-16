@@ -1,0 +1,104 @@
+{{- $mon := .Values.monitoring -}}
+{{- $ns := .Release.Namespace -}}
+{{- $errBudget := round (subf 1 $mon.sloAvailability) 6 -}}
+{{- $runbook := "https://github.com/BHAV0207/Requip-Assignment-/blob/main/docs/RUNBOOK.md" -}}
+{{- if $mon.serviceMonitor }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "requip.backend.selectorLabels" . | nindent 6 }}
+  # Copies the Argo Rollouts pod hash onto every series so canary analysis
+  # can compare the new version's pods against the stable ones.
+  podTargetLabels:
+    - rollouts-pod-template-hash
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+{{- end }}
+{{- if $mon.prometheusRule }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "requip.name" . }}-slo
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: requip-slo-recording
+      rules:
+        {{- range $w := list "5m" "30m" "1h" "6h" }}
+        - record: requip:api_error_ratio:rate{{ $w }}
+          expr: |
+            (sum(rate(http_requests_total{namespace="{{ $ns }}", route=~"/api/.*", status=~"5.."}[{{ $w }}])) or vector(0))
+            /
+            sum(rate(http_requests_total{namespace="{{ $ns }}", route=~"/api/.*"}[{{ $w }}]))
+        {{- end }}
+        - record: requip:api_latency_p95:rate5m
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="{{ $ns }}", route=~"/api/.*"}[5m])))
+    - name: requip-alerts
+      rules:
+        # Multi-window burn-rate alerts (Google SRE workbook). 14.4x burns a
+        # 30-day budget in ~2 days; 6x in ~5 days. The short window makes the
+        # alert stop quickly once the problem is fixed.
+        - alert: RequipErrorBudgetFastBurn
+          expr: |
+            requip:api_error_ratio:rate5m > (14.4 * {{ $errBudget }})
+            and requip:api_error_ratio:rate1h > (14.4 * {{ $errBudget }})
+          for: 2m
+          labels: { severity: page }
+          annotations:
+            summary: "API error budget burning fast ({{ "{{" }} $value | humanizePercentage {{ "}}" }} errors)"
+            runbook_url: {{ $runbook }}#high-error-rate
+        - alert: RequipErrorBudgetSlowBurn
+          expr: |
+            requip:api_error_ratio:rate30m > (6 * {{ $errBudget }})
+            and requip:api_error_ratio:rate6h > (6 * {{ $errBudget }})
+          for: 15m
+          labels: { severity: ticket }
+          annotations:
+            summary: "API error budget burning steadily"
+            runbook_url: {{ $runbook }}#high-error-rate
+        - alert: RequipHighLatency
+          expr: requip:api_latency_p95:rate5m > {{ $mon.latencyThresholdSeconds }}
+          for: 10m
+          labels: { severity: ticket }
+          annotations:
+            summary: "API p95 latency above {{ $mon.latencyThresholdSeconds }}s"
+            runbook_url: {{ $runbook }}#high-latency
+        - alert: RequipBackendDown
+          expr: absent(up{namespace="{{ $ns }}", service="{{ include "requip.backend.fullname" . }}"} == 1)
+          for: 2m
+          labels: { severity: page }
+          annotations:
+            summary: "No backend pod is being scraped successfully"
+            runbook_url: {{ $runbook }}#backend-down
+        - alert: RequipDatabaseNotReady
+          expr: kube_statefulset_status_replicas_ready{namespace="{{ $ns }}", statefulset="{{ include "requip.mysql.fullname" . }}"} < 1
+          for: 2m
+          labels: { severity: page }
+          annotations:
+            summary: "MySQL StatefulSet has no ready replica"
+            runbook_url: {{ $runbook }}#database-down
+{{- end }}
+{{- if $mon.grafanaDashboard }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "requip.name" . }}-dashboard
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  requip.json: |-
+{{ .Files.Get "dashboards/requip.json" | indent 4 }}
+{{- end }}

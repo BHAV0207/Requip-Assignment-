@@ -1,0 +1,25 @@
+## Prometheus
+-- scrape targets up (requip backend):
+    {'__name__': 'up', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.2.15:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-564bcbd48d-5z7mh', 'rollouts_pod_template_hash': '564bcbd48d', 'service': 'requip-backend'} 0
+    {'__name__': 'up', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.1.16:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-6745865654-vxj2l', 'rollouts_pod_template_hash': '6745865654', 'service': 'requip-backend'} 1
+    {'__name__': 'up', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.1.18:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-6745865654-pzc6s', 'rollouts_pod_template_hash': '6745865654', 'service': 'requip-backend'} 1
+    {'__name__': 'up', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.2.21:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-6745865654-7jrpf', 'rollouts_pod_template_hash': '6745865654', 'service': 'requip-backend'} 1
+-- build info (version running per pod):
+    {'__name__': 'requip_build_info', 'commit': 'aea1e4b816b3c1fb0dc32cf2ddf3459f23fb67df', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.1.16:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-6745865654-vxj2l', 'rollouts_pod_template_hash': '6745865654', 'service': 'requip-backend', 'version': 'aea1e4b'} 1
+    {'__name__': 'requip_build_info', 'commit': 'aea1e4b816b3c1fb0dc32cf2ddf3459f23fb67df', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.1.18:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-6745865654-pzc6s', 'rollouts_pod_template_hash': '6745865654', 'service': 'requip-backend', 'version': 'aea1e4b'} 1
+    {'__name__': 'requip_build_info', 'commit': 'aea1e4b816b3c1fb0dc32cf2ddf3459f23fb67df', 'container': 'api', 'endpoint': 'http', 'instance': '10.244.2.21:8080', 'job': 'requip-backend', 'namespace': 'requip', 'pod': 'requip-backend-6745865654-7jrpf', 'rollouts_pod_template_hash': '6745865654', 'service': 'requip-backend', 'version': 'aea1e4b'} 1
+-- API request rate by status (1m):
+    {'status': '200'} 1.6443713612728321
+    {'status': '404'} 1.9275812381671926
+-- SLO recording rule: error ratio 5m:
+    {'__name__': 'requip:api_error_ratio:rate5m'} 0
+-- p95 latency 5m (s):
+    {'__name__': 'requip:api_latency_p95:rate5m'} 0.004935059654928883
+-- canary label present on series:
+    {'rollouts_pod_template_hash': '6745865654'} 14
+-- alert rules loaded:
+    RequipErrorBudgetFastBurn inactive
+    RequipErrorBudgetSlowBurn inactive
+    RequipHighLatency inactive
+    RequipBackendDown inactive
+    RequipDatabaseNotReady inactive

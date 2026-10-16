@@ -1,0 +1,68 @@
+{{- $f := .Values.frontend -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "requip.frontend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+    {{- include "requip.frontend.selectorLabels" . | nindent 4 }}
+spec:
+  replicas: {{ $f.replicas }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels:
+      {{- include "requip.frontend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "requip.labels" . | nindent 8 }}
+        {{- include "requip.frontend.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: {{ include "requip.frontend.image" . }}
+          imagePullPolicy: {{ $f.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $f.port }}
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          resources:
+            {{- toYaml $f.resources | nindent 12 }}
+          securityContext:
+            {{- include "requip.containerSecurityContext" . | nindent 12 }}
+          # nginx needs writable temp/cache dirs; the image itself stays read-only.
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: cache, mountPath: /var/cache/nginx }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: cache, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "requip.frontend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "requip.frontend.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

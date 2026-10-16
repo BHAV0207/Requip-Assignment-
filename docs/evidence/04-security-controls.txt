@@ -1,0 +1,20 @@
+## 1. Pod Security Admission (restricted) rejects a privileged pod in ns requip
+Error from server (Forbidden): pods "psa-test" is forbidden: violates PodSecurity "restricted:latest": privileged (container "c" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container "c" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container "c" must set securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container "c" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container "c" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
+
+## 2. NetworkPolicy: loadgen pod -> backend:8080 (allowed)
+    HTTP 200
+## 3. NetworkPolicy: loadgen pod -> mysql:3306 (must be blocked)
+    curl exit code 28 (28 = timed out = blocked)
+## 4. NetworkPolicy: loadgen pod -> internet (must be blocked)
+command terminated with exit code 28
+    curl exit code 28 (28 = timed out = blocked)
+
+## 5. Backend container runtime identity and filesystem
+    runAsUser=65532 runAsNonRoot=true readOnlyRootFilesystem=true capabilities.drop=["ALL"] automountSAToken=false
+    shell in distroless image?
+    error: Internal error occurred: Internal error occurred: error executing command in container: failed to exec in container: failed to start exec "407f4ca019f582ef5b9cfd1c64d609b3a12b00c7474d7e110a3441c10430943f": OCI runtime exec failed: exec failed: unable to start container process: exec: "sh": executable file not found in $PATH
+
+## 6. Secret is referenced, not embedded: DB_PASSWORD source in pod spec
+    {"name":"DB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"mysql-password","name":"requip-db"}}}
+## 7. Argo CD AppProject 'requip' limits
+    sourceRepos=["https://github.com/BHAV0207/Requip-Assignment-.git"] destinations=[{"namespace":"requip","server":"https://kubernetes.default.svc"}] clusterResourceWhitelist=[]

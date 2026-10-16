@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+    {{- include "requip.backend.selectorLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "requip.backend.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.backend.port }}
+      targetPort: http
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+automountServiceAccountToken: false

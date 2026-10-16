@@ -1,0 +1,10 @@
+Smoke test against http://requip.localtest.me
+  PASS frontend served (HTTP 200)
+  PASS API version: {"buildTime":"2026-10-16T09:28:37Z","commit":"9c423ae42a9c2279b763f5bd86bc222e2363252b","version":"9c423ae"}
+  PASS running version matches Git (9c423ae)
+  PASS created user bb77541e-e2e3-427a-8f9c-8a071eb116e9
+  PASS read user back
+  PASS updated user
+  PASS deleted user
+  PASS deleted user returns 404
+All checks passed.

@@ -1,0 +1,111 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $np := .Values.networkPolicy -}}
+# Default deny: every pod in the namespace starts with no ingress or egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# All pods may resolve DNS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: kube-system }
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "requip.frontend.fullname" . }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "requip.frontend.selectorLabels" . | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ $np.ingressControllerNamespace }} }
+      ports:
+        - port: {{ .Values.frontend.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "requip.backend.selectorLabels" . | nindent 6 }}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ $np.ingressControllerNamespace }} }
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ $np.monitoringNamespace }} }
+        - podSelector:
+            matchLabels: { app.kubernetes.io/component: loadgen }
+      ports:
+        - port: {{ .Values.backend.port }}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- include "requip.mysql.selectorLabels" . | nindent 14 }}
+      ports:
+        - port: 3306
+    # Traces to Tempo (OTLP/gRPC).
+    - to:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ $np.monitoringNamespace }} }
+      ports:
+        - port: 4317
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "requip.mysql.fullname" . }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "requip.mysql.selectorLabels" . | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "requip.backend.selectorLabels" . | nindent 14 }}
+      ports:
+        - port: 3306
+{{- if .Values.loadgen.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "requip.name" . }}-loadgen
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/component: loadgen }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- include "requip.backend.selectorLabels" . | nindent 14 }}
+      ports:
+        - port: {{ .Values.backend.port }}
+{{- end }}
+{{- end }}

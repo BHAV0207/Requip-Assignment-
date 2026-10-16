@@ -1,0 +1,41 @@
+{{- range $name, $p := .Values.platform }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $name }}
+  namespace: argocd
+  annotations:
+    # Waves order installation: ingress/CRDs first, the app last.
+    argocd.argoproj.io/sync-wave: {{ $p.wave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: {{ $p.repo }}
+      chart: {{ $p.chart }}
+      targetRevision: {{ $p.version }}
+      helm:
+        releaseName: {{ $name }}
+        valueFiles:
+          - $values/deploy/platform/{{ $name }}-values.yaml
+    - repoURL: {{ $.Values.repoURL }}
+      targetRevision: {{ $.Values.targetRevision }}
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $p.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      {{- if $p.serverSideApply }}
+      - ServerSideApply=true
+      {{- end }}
+    retry:
+      limit: 10
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }
+{{- end }}

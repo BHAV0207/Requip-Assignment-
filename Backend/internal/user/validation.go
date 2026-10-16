@@ -1,10 +1,14 @@
 package user
 
-import "github.com/google/uuid"
+import (
+	"context"
 
-func (s *Service) validateCreateRequest(req CreateUserRequest) error {
+	"github.com/google/uuid"
+)
 
-	exists, err := s.repository.ExistsByEmail(req.Email)
+func (s *Service) validateCreateRequest(ctx context.Context, req CreateUserRequest) error {
+
+	exists, err := s.repository.ExistsByEmail(ctx, req.Email)
 	if err != nil {
 		return err
 	}
@@ -13,7 +17,7 @@ func (s *Service) validateCreateRequest(req CreateUserRequest) error {
 		return ErrEmailAlreadyExists
 	}
 
-	exists, err = s.repository.ExistsByPAN(req.PAN)
+	exists, err = s.repository.ExistsByPAN(ctx, req.PAN)
 	if err != nil {
 		return err
 	}
@@ -22,7 +26,7 @@ func (s *Service) validateCreateRequest(req CreateUserRequest) error {
 		return ErrPANAlreadyExists
 	}
 
-	exists, err = s.repository.ExistsByAadhaar(req.Aadhaar)
+	exists, err = s.repository.ExistsByAadhaar(ctx, req.Aadhaar)
 	if err != nil {
 		return err
 	}
@@ -31,7 +35,7 @@ func (s *Service) validateCreateRequest(req CreateUserRequest) error {
 		return ErrAadhaarAlreadyExists
 	}
 
-	exists, err = s.repository.ExistsByPrimaryMobile(req.PrimaryMobile)
+	exists, err = s.repository.ExistsByPrimaryMobile(ctx, req.PrimaryMobile)
 	if err != nil {
 		return err
 	}
@@ -43,15 +47,15 @@ func (s *Service) validateCreateRequest(req CreateUserRequest) error {
 	return nil
 }
 
-func (s *Service) validateUpdateRequest(id uuid.UUID, req UpdateUserRequest) error {
+func (s *Service) validateUpdateRequest(ctx context.Context, id uuid.UUID, req UpdateUserRequest) error {
 
 	if req.Email != nil {
-		exists, err := s.repository.ExistsByEmail(*req.Email)
+		exists, err := s.repository.ExistsByEmail(ctx, *req.Email)
 		if err != nil {
 			return err
 		}
 		if exists {
-			user, _ := s.repository.FindByID(id)
+			user, _ := s.repository.FindByID(ctx, id)
 			if user != nil && user.Email != *req.Email {
 				return ErrEmailAlreadyExists
 			}
@@ -59,12 +63,12 @@ func (s *Service) validateUpdateRequest(id uuid.UUID, req UpdateUserRequest) err
 	}
 
 	if req.PrimaryMobile != nil {
-		exists, err := s.repository.ExistsByPrimaryMobile(*req.PrimaryMobile)
+		exists, err := s.repository.ExistsByPrimaryMobile(ctx, *req.PrimaryMobile)
 		if err != nil {
 			return err
 		}
 		if exists {
-			user, _ := s.repository.FindByID(id)
+			user, _ := s.repository.FindByID(ctx, id)
 			if user != nil && user.PrimaryMobile != *req.PrimaryMobile {
 				return ErrMobileAlreadyExists
 			}

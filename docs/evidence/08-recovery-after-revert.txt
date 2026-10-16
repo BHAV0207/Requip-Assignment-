@@ -1,0 +1,40 @@
+09:16:40 Degraded|step=0|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:eee7fda
+09:18:22 Paused|step=1|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:eee7fda
+09:19:23 Progressing|step=2|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:eee7fda
+09:19:33 Paused|step=3|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:eee7fda
+09:20:24 Progressing|step=0|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:ed2ab80
+09:20:55 Paused|step=1|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:ed2ab80
+09:21:56 Paused|step=3|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:ed2ab80
+09:22:57 Progressing|step=4|canaryWeight=|stableRS=6745865654|image=ghcr.io/bhav0207/requip-backend:ed2ab80
+09:23:17 Healthy|step=4|canaryWeight=|stableRS=659769c595|image=ghcr.io/bhav0207/requip-backend:ed2ab80
+== final
+Name:            requip-backend
+Namespace:       requip
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          4/4
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/bhav0207/requip-backend:ed2ab80 (stable)
+Replicas:
+  Desired:       3
+  Current:       3
+  Updated:       3
+  Ready:         3
+  Available:     3
+
+NAME                                        KIND         STATUS        AGE    INFO
+⟳ requip-backend                            Rollout      ✔ Healthy     57m    
+├──# revision:7                                                               
+│  ├──⧉ requip-backend-659769c595           ReplicaSet   ✔ Healthy     2m57s  stable
+│  │  ├──□ requip-backend-659769c595-56fh7  Pod          ✔ Running     2m51s  ready:1/1
+│  │  ├──□ requip-backend-659769c595-4p64q  Pod          ✔ Running     89s    ready:1/1
+│  │  └──□ requip-backend-659769c595-c5lwn  Pod          ✔ Running     24s    ready:1/1
+│  └──α requip-backend-659769c595-7         AnalysisRun  ✔ Successful  2m29s  ✔ 10
+├──# revision:6                                                               
+│  ├──⧉ requip-backend-677956d44            ReplicaSet   • ScaledDown  5m4s   
+│  └──α requip-backend-677956d44-6          AnalysisRun  ✔ Successful  4m58s  ✔ 10
+├──# revision:5                                                               
+│  ├──⧉ requip-backend-5894bd47fc           ReplicaSet   • ScaledDown  37m    
+│  └──α requip-backend-5894bd47fc-5         AnalysisRun  ✖ Failed      36m    ✔ 4,✖ 2
+├──# revision:4                                                               

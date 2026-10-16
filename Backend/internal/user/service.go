@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -8,11 +9,11 @@ import (
 )
 
 type IService interface {
-	Create(req CreateUserRequest) (*User, error)
-	GetByID(id uuid.UUID) (*User, error)
-	GetAll(page, limit int) ([]User, int64, error)
-	Update(id uuid.UUID, req UpdateUserRequest) (*User, error)
-	Delete(id uuid.UUID) error
+	Create(ctx context.Context, req CreateUserRequest) (*User, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
+	GetAll(ctx context.Context, page, limit int) ([]User, int64, error)
+	Update(ctx context.Context, id uuid.UUID, req UpdateUserRequest) (*User, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type Service struct {
@@ -25,23 +26,23 @@ func NewService(repository IRepository) IService {
 	}
 }
 
-func (s *Service) Create(req CreateUserRequest) (*User, error) {
+func (s *Service) Create(ctx context.Context, req CreateUserRequest) (*User, error) {
 
-	if err := s.validateCreateRequest(req); err != nil {
+	if err := s.validateCreateRequest(ctx, req); err != nil {
 		return nil, err
 	}
 
 	user := NewUser(req)
 
-	if err := s.repository.Create(user); err != nil {
+	if err := s.repository.Create(ctx, user); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *Service) GetByID(id uuid.UUID) (*User, error) {
-	user, err := s.repository.FindByID(id)
+func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
+	user, err := s.repository.FindByID(ctx, id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, ErrUserNotFound
@@ -51,7 +52,7 @@ func (s *Service) GetByID(id uuid.UUID) (*User, error) {
 	return user, nil
 }
 
-func (s *Service) GetAll(page, limit int) ([]User, int64, error) {
+func (s *Service) GetAll(ctx context.Context, page, limit int) ([]User, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -60,26 +61,26 @@ func (s *Service) GetAll(page, limit int) ([]User, int64, error) {
 	}
 
 	offset := (page - 1) * limit
-	users, err := s.repository.GetAll(offset, limit)
+	users, err := s.repository.GetAll(ctx, offset, limit)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, err := s.repository.Count()
+	total, err := s.repository.Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	return users, total, nil
 }
 
-func (s *Service) Update(id uuid.UUID, req UpdateUserRequest) (*User, error) {
-	user, err := s.GetByID(id)
+func (s *Service) Update(ctx context.Context, id uuid.UUID, req UpdateUserRequest) (*User, error) {
+	user, err := s.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.validateUpdateRequest(id, req); err != nil {
+	if err := s.validateUpdateRequest(ctx, id, req); err != nil {
 		return nil, err
 	}
 
@@ -109,18 +110,18 @@ func (s *Service) Update(id uuid.UUID, req UpdateUserRequest) (*User, error) {
 		user.PermanentAddress = *req.PermanentAddress
 	}
 
-	if err := s.repository.Update(user); err != nil {
+	if err := s.repository.Update(ctx, user); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *Service) Delete(id uuid.UUID) error {
-	user, err := s.GetByID(id)
+func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
+	user, err := s.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	return s.repository.Delete(user)
+	return s.repository.Delete(ctx, user)
 }

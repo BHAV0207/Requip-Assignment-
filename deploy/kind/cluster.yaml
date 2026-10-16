@@ -1,0 +1,15 @@
+# Local cluster: 1 control plane + 2 workers, so pod spreading, PDBs and
+# node-failure scenarios are meaningful. Port 80 is bound to 127.0.0.1 only,
+# so nothing is exposed to the local network.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: requip
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080   # Traefik NodePort
+        hostPort: 80
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+  - role: worker
+  - role: worker

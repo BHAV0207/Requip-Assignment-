@@ -4,6 +4,7 @@ import UserForm from './components/UserForm';
 import type { User } from './services/userService';
 import { Toaster } from 'react-hot-toast';
 import { Users } from 'lucide-react';
+import VersionFooter from './components/VersionFooter';
 
 function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -61,6 +62,8 @@ function App() {
           refreshTrigger={refreshTrigger} 
         />
       </main>
+
+      <VersionFooter />
 
       {/* Form Modal */}
       {isFormOpen && (

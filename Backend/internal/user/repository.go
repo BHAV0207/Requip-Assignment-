@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -10,16 +11,16 @@ import (
 )
 
 type IRepository interface {
-	Create(user *User) error
-	ExistsByEmail(email string) (bool, error)
-	ExistsByPAN(PAN string) (bool, error)
-	ExistsByAadhaar(Aadhaar string) (bool, error)
-	ExistsByPrimaryMobile(mobile string) (bool, error)
-	FindByID(id uuid.UUID) (*User, error)
-	GetAll(offset, limit int) ([]User, error)
-	Update(user *User) error
-	Delete(user *User) error
-	Count() (int64, error)
+	Create(ctx context.Context, user *User) error
+	ExistsByEmail(ctx context.Context, email string) (bool, error)
+	ExistsByPAN(ctx context.Context, PAN string) (bool, error)
+	ExistsByAadhaar(ctx context.Context, Aadhaar string) (bool, error)
+	ExistsByPrimaryMobile(ctx context.Context, mobile string) (bool, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*User, error)
+	GetAll(ctx context.Context, offset, limit int) ([]User, error)
+	Update(ctx context.Context, user *User) error
+	Delete(ctx context.Context, user *User) error
+	Count(ctx context.Context) (int64, error)
 }
 
 type Repository struct {
@@ -32,8 +33,8 @@ func NewRepository(db *gorm.DB) IRepository {
 	}
 }
 
-func (r *Repository) Create(user *User) error {
-	err := r.db.Create(user).Error
+func (r *Repository) Create(ctx context.Context, user *User) error {
+	err := r.db.WithContext(ctx).Create(user).Error
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
@@ -56,11 +57,11 @@ func (r *Repository) Create(user *User) error {
 	return nil
 }
 
-func (r *Repository) ExistsByEmail(email string) (bool, error) {
+func (r *Repository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 
 	var count int64
 
-	err := r.db.Unscoped().
+	err := r.db.WithContext(ctx).Unscoped().
 		Model(&User{}).
 		Where("email = ?", email).
 		Count(&count).
@@ -73,11 +74,11 @@ func (r *Repository) ExistsByEmail(email string) (bool, error) {
 	return count > 0, nil
 }
 
-func (r *Repository) ExistsByPAN(PAN string) (bool, error) {
+func (r *Repository) ExistsByPAN(ctx context.Context, PAN string) (bool, error) {
 
 	var count int64
 
-	err := r.db.Unscoped().
+	err := r.db.WithContext(ctx).Unscoped().
 		Model(&User{}).
 		Where("PAN = ?", PAN).
 		Count(&count).
@@ -90,11 +91,11 @@ func (r *Repository) ExistsByPAN(PAN string) (bool, error) {
 	return count > 0, nil
 }
 
-func (r *Repository) ExistsByAadhaar(Aadhaar string) (bool, error) {
+func (r *Repository) ExistsByAadhaar(ctx context.Context, Aadhaar string) (bool, error) {
 
-	var count int64	
+	var count int64
 
-	err := r.db.Unscoped().
+	err := r.db.WithContext(ctx).Unscoped().
 		Model(&User{}).
 		Where("Aadhaar = ?", Aadhaar).
 		Count(&count).
@@ -107,11 +108,11 @@ func (r *Repository) ExistsByAadhaar(Aadhaar string) (bool, error) {
 	return count > 0, nil
 }
 
-func (r *Repository) ExistsByPrimaryMobile(mobile string) (bool, error) {
+func (r *Repository) ExistsByPrimaryMobile(ctx context.Context, mobile string) (bool, error) {
 
 	var count int64
 
-	err := r.db.Unscoped().
+	err := r.db.WithContext(ctx).Unscoped().
 		Model(&User{}).
 		Where("primary_mobile = ?", mobile).
 		Count(&count).
@@ -124,13 +125,11 @@ func (r *Repository) ExistsByPrimaryMobile(mobile string) (bool, error) {
 	return count > 0, nil
 }
 
-
-
-func (r *Repository) FindByID(id uuid.UUID) (*User, error) {
+func (r *Repository) FindByID(ctx context.Context, id uuid.UUID) (*User, error) {
 
 	var user User
 
-	err := r.db.
+	err := r.db.WithContext(ctx).
 		First(&user, "id = ?", id).
 		Error
 
@@ -141,11 +140,11 @@ func (r *Repository) FindByID(id uuid.UUID) (*User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetAll(offset, limit int) ([]User, error) {
+func (r *Repository) GetAll(ctx context.Context, offset, limit int) ([]User, error) {
 
 	var users []User
 
-	err := r.db.
+	err := r.db.WithContext(ctx).
 		Offset(offset).
 		Limit(limit).
 		Order("created_at DESC").
@@ -159,20 +158,20 @@ func (r *Repository) GetAll(offset, limit int) ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) Update(user *User) error {
+func (r *Repository) Update(ctx context.Context, user *User) error {
 
-	return r.db.Save(user).Error
-
-}
-
-func (r *Repository) Delete(user *User) error {
-
-	return r.db.Delete(user).Error
+	return r.db.WithContext(ctx).Save(user).Error
 
 }
 
-func (r *Repository) Count() (int64, error) {
+func (r *Repository) Delete(ctx context.Context, user *User) error {
+
+	return r.db.WithContext(ctx).Delete(user).Error
+
+}
+
+func (r *Repository) Count(ctx context.Context) (int64, error) {
 	var count int64
-	err := r.db.Model(&User{}).Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&User{}).Count(&count).Error
 	return count, err
 }
