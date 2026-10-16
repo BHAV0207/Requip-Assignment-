@@ -4,6 +4,8 @@ kind: AppProject
 metadata:
   name: platform
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"   # projects must exist before any Application uses them
 spec:
   description: Shared cluster add-ons
   sourceRepos: ["*"]
@@ -19,6 +21,8 @@ kind: AppProject
 metadata:
   name: requip
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"   # projects must exist before any Application uses them
 spec:
   description: Requip application
   sourceRepos:
