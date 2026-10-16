@@ -1,10 +1,6 @@
 # Local kind cluster. CI updates the image tags below on every successful
 # build; Argo CD deploys whatever this file says. Git is the source of truth.
 backend:
-  env:
-    # DEMO (bad release): make 50% of API requests fail on the new version.
-    # The canary analysis should abort this rollout automatically.
-    FAULT_ERROR_RATE: "0.5"
   image:
     tag: "eee7fda"
 frontend:
