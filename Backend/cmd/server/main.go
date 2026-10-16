@@ -36,10 +36,12 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
 	defer stop()
 
+	// Tracing is diagnostic, not part of serving users: if it cannot start,
+	// run without it rather than taking the API down.
 	shutdownTracing, err := observability.InitTracing(ctx, serviceName, version.Version)
 	if err != nil {
-		log.Error("tracing setup failed", "error", err)
-		os.Exit(1)
+		log.Warn("tracing disabled: setup failed", "error", err)
+		shutdownTracing = func(context.Context) error { return nil }
 	}
 
 	db, err := database.Connect(ctx, cfg, log)

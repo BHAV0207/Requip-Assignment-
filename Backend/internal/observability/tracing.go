@@ -29,8 +29,9 @@ func InitTracing(ctx context.Context, serviceName, version string) (func(context
 		return nil, err
 	}
 
-	res, err := resource.Merge(resource.Default(), resource.NewWithAttributes(
-		semconv.SchemaURL,
+	// Schemaless on purpose: resource.Default() carries the SDK's semconv
+	// schema version, and merging two different schema URLs is an error.
+	res, err := resource.Merge(resource.Default(), resource.NewSchemaless(
 		semconv.ServiceName(serviceName),
 		semconv.ServiceVersion(version),
 	))
