@@ -2,6 +2,11 @@
 # node-exporter. Sized for a laptop.
 fullnameOverride: kps
 
+# CRDs are installed by the separate prometheus-operator-crds app (earlier
+# sync wave), so charts in earlier waves can already create ServiceMonitors.
+crds:
+  enabled: false
+
 # kind does not expose these control-plane endpoints; scraping them only
 # produces permanent "target down" noise.
 kubeEtcd: { enabled: false }

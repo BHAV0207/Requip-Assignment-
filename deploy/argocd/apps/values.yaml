@@ -3,6 +3,8 @@ repoURL: https://github.com/BHAV0207/Requip-Assignment-.git
 targetRevision: main
 
 platform:
+  # CRDs first: Traefik, Argo Rollouts, Tempo and the app all create ServiceMonitors.
+  prometheus-operator-crds: { repo: https://prometheus-community.github.io/helm-charts, chart: prometheus-operator-crds, version: 32.0.1, namespace: monitoring, wave: "-5", serverSideApply: true }
   traefik:            { repo: https://traefik.github.io/charts,                       chart: traefik,               version: 42.0.0,  namespace: traefik,       wave: "-3" }
   metrics-server:     { repo: https://kubernetes-sigs.github.io/metrics-server/,      chart: metrics-server,        version: 3.14.0,  namespace: kube-system,   wave: "-3" }
   argo-rollouts:      { repo: https://argoproj.github.io/argo-helm,                   chart: argo-rollouts,         version: 2.43.7,  namespace: argo-rollouts, wave: "-3" }

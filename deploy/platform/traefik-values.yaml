@@ -14,6 +14,12 @@ ingressClass:
 providers:
   kubernetesIngress:
     enabled: true
+    # Write an address into Ingress status. Argo CD treats an Ingress without
+    # one as still Progressing, which would stall the sync waves.
+    publishedService:
+      enabled: false
+    ingressEndpoint:
+      ip: 127.0.0.1
   kubernetesCRD:
     enabled: false
 metrics:
