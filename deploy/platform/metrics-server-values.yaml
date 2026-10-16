@@ -1,0 +1,4 @@
+# Feeds CPU/memory usage to the HorizontalPodAutoscaler.
+# kind kubelets use self-signed certificates, hence insecure TLS (lab only).
+args:
+  - --kubelet-insecure-tls

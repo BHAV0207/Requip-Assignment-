@@ -1,0 +1,25 @@
+# Ingress controller. ingress-nginx was retired upstream in 2026, so Traefik
+# (actively maintained, supports standard Ingress and Gateway API) is used.
+service:
+  type: NodePort
+ports:
+  web:
+    nodePort: 30080
+  websecure:
+    expose:
+      default: false
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+providers:
+  kubernetesIngress:
+    enabled: true
+  kubernetesCRD:
+    enabled: false
+metrics:
+  prometheus:
+    serviceMonitor:
+      enabled: true
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits: { memory: 256Mi }

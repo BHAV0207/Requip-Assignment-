@@ -1,0 +1,29 @@
+# Argo CD itself is the only thing installed imperatively (scripts/bootstrap.sh).
+# Everything else is declared in Git and synced by Argo CD.
+configs:
+  params:
+    server.insecure: true          # TLS terminates at the ingress; lab uses plain HTTP on 127.0.0.1
+  cm:
+    timeout.reconciliation: 60s    # poll Git every minute (default 3m)
+    # Lets sync waves wait for child Applications to become Healthy
+    # (app-of-apps); without this, waves would not wait for CRDs to exist.
+    resource.customizations.health.argoproj.io_Application: |
+      hs = {}
+      hs.status = "Progressing"
+      hs.message = ""
+      if obj.status ~= nil and obj.status.health ~= nil then
+        hs.status = obj.status.health.status
+        if obj.status.health.message ~= nil then
+          hs.message = obj.status.health.message
+        end
+      end
+      return hs
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.localtest.me
+dex:
+  enabled: false
+notifications:
+  enabled: false

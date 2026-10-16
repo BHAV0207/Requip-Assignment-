@@ -1,0 +1,83 @@
+# Prometheus (metrics + alert rules), Alertmanager, Grafana, kube-state-metrics,
+# node-exporter. Sized for a laptop.
+fullnameOverride: kps
+
+# kind does not expose these control-plane endpoints; scraping them only
+# produces permanent "target down" noise.
+kubeEtcd: { enabled: false }
+kubeControllerManager: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeProxy: { enabled: false }
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts: [prometheus.localtest.me]
+  prometheusSpec:
+    retention: 3d
+    scrapeInterval: 15s
+    # Pick up ServiceMonitors / rules from every namespace, not only ones
+    # labelled with this Helm release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests: { cpu: 100m, memory: 512Mi }
+      limits: { memory: 2Gi }
+
+alertmanager:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts: [alertmanager.localtest.me]
+  # No external receiver in a lab; alerts are visible in the Alertmanager UI.
+  # In production route severity=page to PagerDuty and severity=ticket to Slack.
+  config:
+    route:
+      group_by: [alertname, namespace]
+      receiver: "null"
+      routes:
+        - matchers: ['severity="page"']
+          receiver: "null"
+    receivers:
+      - name: "null"
+
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts: [grafana.localtest.me]
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      url: http://loki.monitoring.svc.cluster.local:3100
+      jsonData:
+        # Turns trace_id in a JSON log line into a link to the trace in Tempo.
+        derivedFields:
+          - name: trace_id
+            matcherRegex: '"trace_id":"(\w+)"'
+            datasourceUid: tempo
+            url: "$${__value.raw}"
+    - name: Tempo
+      uid: tempo
+      type: tempo
+      url: http://tempo.monitoring.svc.cluster.local:3200
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+          filterByTraceID: true
+          spanStartTimeShift: "-5m"
+          spanEndTimeShift: "5m"
+        serviceMap:
+          datasourceUid: prometheus

@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: requip
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: requip
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: deploy/helm/requip
+    helm:
+      releaseName: requip
+      valueFiles:
+        - values.yaml
+        - values-kind.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: requip
+  syncPolicy:
+    automated:
+      # prune: delete resources removed from Git. selfHeal: undo manual
+      # kubectl edits, so the cluster cannot drift from Git.
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # CRDs (ServiceMonitor, Rollout) come from platform apps in earlier waves.
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 10
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }
+  # HPA owns the replica count; never treat it as drift.
+  ignoreDifferences:
+    - group: argoproj.io
+      kind: Rollout
+      jsonPointers: [/spec/replicas]

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+data:
+  APP_PORT: {{ .Values.backend.port | quote }}
+  DB_HOST: {{ include "requip.mysql.fullname" . }}
+  DB_PORT: "3306"
+  DB_USER: {{ .Values.database.user | quote }}
+  DB_NAME: {{ .Values.database.name | quote }}
+  CORS_ALLOWED_ORIGINS: {{ printf "http://%s" .Values.ingress.host | quote }}
+  OTEL_SERVICE_NAME: requip-backend
+  {{- if .Values.backend.tracing.enabled }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.backend.tracing.endpoint | quote }}
+  OTEL_EXPORTER_OTLP_INSECURE: "true"
+  {{- end }}
+  {{- range $k, $v := .Values.backend.env }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}

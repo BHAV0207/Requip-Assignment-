@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/BHAV0207/Requip-assignment/internal/config"
+	"github.com/XSAM/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 // Connect opens the MySQL pool. It retries for about a minute because in
@@ -26,10 +27,16 @@ func Connect(ctx context.Context, cfg *config.Config, log *slog.Logger) (*gorm.D
 		cfg.DBName,
 	)
 
+	// otelsql wraps the database/sql driver, so every query becomes a child
+	// span of the HTTP request that issued it.
+	sqlDB, err := otelsql.Open("mysql", dsn, otelsql.WithAttributes(semconv.DBSystemMySQL))
+	if err != nil {
+		return nil, err
+	}
+
 	var db *gorm.DB
-	var err error
 	for attempt := 1; attempt <= 12; attempt++ {
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Warn)})
+		db, err = gorm.Open(mysql.New(mysql.Config{Conn: sqlDB}), &gorm.Config{Logger: logger.Default.LogMode(logger.Warn)})
 		if err == nil {
 			break
 		}
@@ -41,18 +48,10 @@ func Connect(ctx context.Context, cfg *config.Config, log *slog.Logger) (*gorm.D
 		}
 	}
 	if err != nil {
+		_ = sqlDB.Close()
 		return nil, err
 	}
 
-	// Every query becomes a child span of the HTTP request that issued it.
-	if err := db.Use(tracing.NewPlugin(tracing.WithoutMetrics())); err != nil {
-		return nil, err
-	}
-
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
 	sqlDB.SetMaxOpenConns(cfg.DBMaxOpenConns)
 	sqlDB.SetMaxIdleConns(cfg.DBMaxIdleConns)
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
