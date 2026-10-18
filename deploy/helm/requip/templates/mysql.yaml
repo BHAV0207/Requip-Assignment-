@@ -1,0 +1,99 @@
+{{- $m := .Values.mysql -}}
+# StatefulSet, not Deployment: MySQL needs a stable identity and its own
+# PersistentVolumeClaim that survives pod rescheduling and restarts.
+# Single replica: no replication/failover (documented limitation).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "requip.mysql.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+    {{- include "requip.mysql.selectorLabels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "requip.mysql.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "requip.mysql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "requip.labels" . | nindent 8 }}
+        {{- include "requip.mysql.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mysql
+          image: {{ $m.image }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_DATABASE
+              value: {{ .Values.database.name | quote }}
+            - name: MYSQL_USER
+              value: {{ .Values.database.user | quote }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: {{ .Values.database.existingSecret }}, key: mysql-password }
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: {{ .Values.database.existingSecret }}, key: mysql-root-password }
+          # First boot initialises the data directory, which can take a while.
+          startupProbe:
+            exec: { command: ["mysqladmin", "ping", "-h", "127.0.0.1"] }
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            exec: { command: ["mysqladmin", "ping", "-h", "127.0.0.1"] }
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: mysql }
+            periodSeconds: 20
+          resources:
+            {{- toYaml $m.resources | nindent 12 }}
+          securityContext:
+            {{- include "requip.containerSecurityContext" . | nindent 12 }}
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+            - { name: run, mountPath: /var/run/mysqld }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: run, emptyDir: {} }
+        - { name: tmp, emptyDir: {} }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if $m.storage.storageClassName }}
+        storageClassName: {{ $m.storage.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $m.storage.size }}
+---
+# Headless service: stable DNS name for the StatefulSet pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "requip.mysql.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "requip.mysql.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql

@@ -1,0 +1,10 @@
+# Local kind cluster. CI updates the image tags below on every successful
+# build; Argo CD deploys whatever this file says. Git is the source of truth.
+backend:
+  image:
+    tag: "5e64e37"
+frontend:
+  image:
+    tag: "5e64e37"
+loadgen:
+  enabled: true

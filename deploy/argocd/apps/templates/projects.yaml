@@ -1,0 +1,35 @@
+# Platform components may install cluster-wide resources (CRDs, RBAC).
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"   # projects must exist before any Application uses them
+spec:
+  description: Shared cluster add-ons
+  sourceRepos: ["*"]
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: "*" }
+  clusterResourceWhitelist:
+    - { group: "*", kind: "*" }
+---
+# The application is fenced in: only this Git repo, only the requip namespace,
+# and no cluster-scoped resources at all.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: requip
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"   # projects must exist before any Application uses them
+spec:
+  description: Requip application
+  sourceRepos:
+    - {{ .Values.repoURL }}
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: requip }
+  clusterResourceWhitelist: []
+  namespaceResourceBlacklist:
+    - { group: "", kind: ResourceQuota }
+    - { group: "", kind: LimitRange }

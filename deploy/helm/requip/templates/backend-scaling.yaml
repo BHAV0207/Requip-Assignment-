@@ -1,0 +1,40 @@
+{{- $b := .Values.backend -}}
+{{- if $b.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    {{- if $b.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
+    apiVersion: apps/v1
+    kind: Deployment
+    {{- end }}
+    name: {{ include "requip.backend.fullname" . }}
+  minReplicas: {{ $b.autoscaling.minReplicas }}
+  maxReplicas: {{ $b.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $b.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ $b.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "requip.backend.selectorLabels" . | nindent 6 }}

@@ -1,0 +1,23 @@
+# Root of the app-of-apps tree. bootstrap.sh replaces __REVISION__.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/BHAV0207/Requip-Assignment-.git
+    targetRevision: __REVISION__
+    path: deploy/argocd/apps
+    helm:
+      parameters:
+        - name: targetRevision
+          value: __REVISION__
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

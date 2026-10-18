@@ -1,0 +1,117 @@
+{{- $b := .Values.backend -}}
+{{- if $b.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
+apiVersion: apps/v1
+kind: Deployment
+{{- end }}
+metadata:
+  name: {{ include "requip.backend.fullname" . }}
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+    {{- include "requip.backend.selectorLabels" . | nindent 4 }}
+spec:
+  {{- if not $b.autoscaling.enabled }}
+  replicas: {{ $b.replicas }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "requip.backend.selectorLabels" . | nindent 6 }}
+  {{- if $b.rollout.enabled }}
+  strategy:
+    canary:
+      # No traffic router: the canary share is the share of pods behind the
+      # one Service. Simple and ingress-agnostic; the weight is approximate.
+      maxSurge: 1
+      maxUnavailable: 0
+      analysis:
+        templates:
+          - templateName: {{ include "requip.backend.fullname" . }}-canary
+        startingStep: 1
+        args:
+          - name: canary-hash
+            valueFrom:
+              podTemplateHashValue: Latest
+      steps:
+        {{- toYaml $b.rollout.steps | nindent 8 }}
+  {{- else }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "requip.labels" . | nindent 8 }}
+        {{- include "requip.backend.selectorLabels" . | nindent 8 }}
+      annotations:
+        # Restart pods when non-secret configuration changes.
+        checksum/config: {{ include (print $.Template.BasePath "/backend-configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "requip.backend.fullname" . }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              {{- include "requip.backend.selectorLabels" . | nindent 14 }}
+      containers:
+        - name: api
+          image: {{ include "requip.backend.image" . }}
+          imagePullPolicy: {{ $b.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $b.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "requip.backend.fullname" . }}
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: mysql-password
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: k8s.pod.name=$(POD_NAME),k8s.namespace.name={{ .Release.Namespace }}
+          # Covers the app's DB-connect retry window (up to ~60s) on cold start.
+          startupProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 5
+            failureThreshold: 18
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          lifecycle:
+            # Give kube-proxy and the ingress time to drop this pod from
+            # endpoints before the app stops accepting connections.
+            preStop:
+              sleep:
+                seconds: 5
+          resources:
+            {{- toYaml $b.resources | nindent 12 }}
+          securityContext:
+            {{- include "requip.containerSecurityContext" . | nindent 12 }}

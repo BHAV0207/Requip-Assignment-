@@ -1,0 +1,39 @@
+{{- if .Values.backend.rollout.enabled }}
+{{- $a := .Values.backend.rollout.analysis -}}
+# Evaluated repeatedly while a canary runs. A failed measurement aborts the
+# rollout and Argo Rollouts scales the canary down: automatic rollback.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: {{ include "requip.backend.fullname" . }}-canary
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+spec:
+  args:
+    - name: canary-hash
+  metrics:
+    - name: error-ratio
+      interval: {{ $a.interval }}
+      failureLimit: {{ $a.failureLimit }}
+      # No canary traffic yet -> empty result -> treated as passing.
+      successCondition: len(result) == 0 || result[0] <= {{ $a.maxErrorRatio }}
+      provider:
+        prometheus:
+          address: {{ $a.prometheusAddress }}
+          query: |
+            (
+              sum(rate(http_requests_total{namespace="{{ .Release.Namespace }}", route=~"/api/.*", status=~"5..", rollouts_pod_template_hash="{{ "{{" }}args.canary-hash{{ "}}" }}"}[1m]))
+              or vector(0)
+            )
+            /
+            (sum(rate(http_requests_total{namespace="{{ .Release.Namespace }}", route=~"/api/.*", rollouts_pod_template_hash="{{ "{{" }}args.canary-hash{{ "}}" }}"}[1m])) > 0)
+    - name: p95-latency
+      interval: {{ $a.interval }}
+      failureLimit: {{ $a.failureLimit }}
+      successCondition: len(result) == 0 || isNaN(result[0]) || result[0] <= {{ $a.maxP95LatencySeconds }}
+      provider:
+        prometheus:
+          address: {{ $a.prometheusAddress }}
+          query: |
+            histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="{{ .Release.Namespace }}", route=~"/api/.*", rollouts_pod_template_hash="{{ "{{" }}args.canary-hash{{ "}}" }}"}[1m])))
+{{- end }}

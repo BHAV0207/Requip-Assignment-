@@ -1,0 +1,43 @@
+{{- if .Values.loadgen.enabled }}
+# Synthetic user traffic: keeps metrics flowing so dashboards, alerts and
+# canary analysis have data in a lab cluster with no real users.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "requip.name" . }}-loadgen
+  labels:
+    {{- include "requip.labels" . | nindent 4 }}
+    app.kubernetes.io/component: loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/component: loadgen }
+  template:
+    metadata:
+      labels:
+        {{- include "requip.labels" . | nindent 8 }}
+        app.kubernetes.io/component: loadgen
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: curl
+          image: {{ .Values.loadgen.image }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              API=http://{{ include "requip.backend.fullname" . }}:{{ .Values.backend.port }}/api/v1
+              while true; do
+                curl -s -o /dev/null "$API/users?page=1&limit=5"
+                curl -s -o /dev/null "$API/users/00000000-0000-0000-0000-000000000000"
+                sleep {{ .Values.loadgen.intervalSeconds }}
+              done
+          resources:
+            requests: { cpu: 5m, memory: 8Mi }
+            limits: { memory: 32Mi }
+          securityContext:
+            {{- include "requip.containerSecurityContext" . | nindent 12 }}
+{{- end }}
